@@ -1,47 +1,48 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+import TimerPage from "@/components/TimerPage.vue";
 </script>
 
 <template>
+
   <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
+    <h1>Embedded Systems</h1>
+    <v-divider></v-divider>
   </header>
-
   <main>
-    <TheWelcome />
+    <v-tabs v-model="tab" hide-slider>
+      <v-tab value="timers">Timers</v-tab>
+    </v-tabs>
+    <v-window v-model="tab">
+      <v-window-item value="timers">
+        <timer-page></timer-page>
+      </v-window-item>
+
+    </v-window>
   </main>
 </template>
 
+<script>
+
+export default {
+  data: () => ({
+    tab: null,
+  }),
+}
+
+</script>
+
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap');
+
+h1 {
+  font-family: "Roboto", sans-serif;
+}
+
 header {
-  line-height: 1.5;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+.v-tab__slider {
+  height: 1px;
 }
 
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
 </style>
