@@ -3,7 +3,7 @@ import Timer from "@/components/Timer.vue";
 </script>
 
 <template>
-  <div class="switch-row">
+  <div class="switch-row flex-wrap">
     <v-switch v-model="timer0Active" class="switch" inset color="secondary" label="Timer 0"></v-switch>
     <v-switch v-model="timer1Active" class="switch" inset color="secondary" label="Timer 1"></v-switch>
     <v-switch v-model="timer2Active" class="switch" inset color="secondary" label="Timer 2"></v-switch>

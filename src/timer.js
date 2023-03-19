@@ -1,8 +1,8 @@
 export default class TimerModel {
     number = "";
     TCT = 0;
+    OVF = 0;
     MAX = 255;
-    TOP = 255;
     OCRnA = 255;
     OCRnB = 0;
     registers = {};
@@ -41,6 +41,7 @@ export default class TimerModel {
                     TCCRnC: {names: ['FOC1A', 'FOC1B', '-', '-', '-', '-', '-', '-'], values: [0, 0, 0, 0, 0, 0, 0, 0]}
                 }
                 this.MAX = 65535;
+                this.OCRnA = this.MAX;
                 break;
             case '2':
                 this.registers = {
