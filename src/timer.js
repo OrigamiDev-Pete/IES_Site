@@ -22,6 +22,7 @@ export default class TimerModel {
 
     set OCRnA(value) {
         this._OCRnA = Math.min(Math.max(value, 0), this.MAX);
+        this.TCT = 0;
     }
 
     get OCRnB() {
@@ -30,6 +31,7 @@ export default class TimerModel {
 
     set OCRnB(value) {
         this._OCRnB = Math.min(Math.max(value, 0), this.MAX);
+        this.TCT = 0;
     }
 
     constructor(number) {

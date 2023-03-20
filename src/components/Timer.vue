@@ -37,7 +37,7 @@
               <div class="d-flex ms-5 align-center">
                 <div class="d-flex align-center" style="flex-grow: 0.1">
                   <h3 class="mr-0">OCR{{ timer.number }}A: </h3>
-                  <v-text-field type="number" class="ml-4 w-50" density="compact" style="top: 10px" v-model="timer.OCRnA" />
+                  <v-text-field type="number" class="ml-4 w-50" density="compact" style="top: 10px" v-model="timer.OCRnA"/>
                 </div>
 
                 <div v-if="timer.mode === TimerMode.FastPWM || timer.mode === TimerMode.PhaseCorrectPWMMax || timer.mode === TimerMode.PhaseCorrectPWMTop" >
@@ -46,7 +46,7 @@
                     <h3 class="mr-0">OCR{{ timer.number }}B: </h3>
                     <v-text-field type="number" class="ml-4 w-25" density="compact" style="top: 10px" v-model="timer.OCRnB"/>
                     <v-divider vertical class="ml-4 mr-3"/>
-                    <h3 class="mr-0">Pulse Width | Duty Cycle =
+                    <h3 v-if="timer.mode === TimerMode.FastPWM" class="mr-0">Pulse Width | Duty Cycle =
                       {{ ((this.timer.OCRnB / this.timer.OCRnA) * 100).toFixed(2) }}</h3>
                   </div>
                 </div>
@@ -120,8 +120,8 @@ export default {
 
   methods: {
     draw() {
-      const drawOCRnx = (register, value) => {
-        const a = (255 / this.timer.MAX) * (value);
+      const drawOCRnx = (register, value, TOP) => {
+        const a = (255 / TOP) * (value);
         ctx.fillText(`${register} = ${value}`, 280, a + (296 - a * 2));
 
         ctx.setLineDash([5, 5])
@@ -131,6 +131,17 @@ export default {
         ctx.lineTo(276, OCRnALine);
         ctx.stroke();
         ctx.setLineDash([])
+      }
+      const drawPulse = (TOP) => {
+        const pulseWidth = Math.min(Math.max((this.timer.OCRnB / TOP) * 100, 0), 100);
+        ctx.beginPath();
+        ctx.moveTo(0, 50);
+        ctx.lineTo(0, 0);
+        ctx.lineTo(pulseWidth, 0);
+        ctx.lineTo(pulseWidth, 50);
+        ctx.lineTo(100, 50);
+        ctx.stroke();
+        ctx.closePath();
       }
 
       const canvas = this.$el.querySelector(`#timer${this.timer.number}`)
@@ -169,8 +180,9 @@ export default {
       }
 
       let TOP = this.timer.MAX;
-      if (this.timer.mode === TimerMode.CTC || this.timer.mode === TimerMode.FastPWM)
+      if (this.timer.mode === TimerMode.CTC || this.timer.mode === TimerMode.FastPWM || this.timer.mode === TimerMode.PhaseCorrectPWMMax) {
         TOP = Number(this.timer.OCRnA);
+      }
 
       const t = (255 / TOP) * (this.timer.TCT);
       const TCTLine = t + (316 - t * 2);
@@ -185,38 +197,46 @@ export default {
       if (this.timer.mode === TimerMode.Normal) {
         ctx.fillText(`MAX = ${this.timer.MAX}`, 160, 30);
         ctx.fillText("BOTTOM = 0", 140, 326);
-      } else if (this.timer.mode === TimerMode.CTC) {
+      } 
+      else if (this.timer.mode === TimerMode.CTC) {
         ctx.fillText(`TOP = ${this.timer.OCRnA} = OCR${this.timer.number}A`, 160, 30);
         ctx.fillText("BOTTOM = 0", 140, 326);
-      } else if (this.timer.mode === TimerMode.FastPWM || this.timer.mode === TimerMode.PhaseCorrectPWMMax) {
+      } 
+      else if (this.timer.mode === TimerMode.FastPWM) {
         ctx.fillText(`TOP = ${this.timer.OCRnA} = OCR${this.timer.number}A`, 160, 30);
         ctx.fillText("BOTTOM = 0", 140, 326);
-        // drawOCRnx(`OCR${this.timer.number}A`, this.timer.OCRnA);
-        drawOCRnx(`OCR${this.timer.number}B`, this.timer.OCRnB);
-
-        // Draw Pulse
-        const pulseWidth = Math.min(Math.max((this.timer.OCRnB / TOP) * 100, 0), 100);
-        ctx.beginPath();
-        ctx.moveTo(0, 50);
-        ctx.lineTo(0, 0);
-        ctx.lineTo(pulseWidth, 0);
-        ctx.lineTo(pulseWidth, 50);
-        ctx.lineTo(100, 50);
-        ctx.stroke();
-        ctx.closePath();
-      } else if (this.timer.mode === TimerMode.PhaseCorrectPWMTop) {
+        drawOCRnx(`OCR${this.timer.number}B`, this.timer.OCRnB, TOP);
+        drawPulse(TOP);
+      } 
+      else if (this.timer.mode === TimerMode.PhaseCorrectPWMMax) {
+        ctx.fillText(`TOP = ${this.timer.OCRnA} = OCR${this.timer.number}A`, 160, 30);
+        ctx.fillText("BOTTOM = 0", 140, 326);
+        drawOCRnx(`OCR${this.timer.number}B`, this.timer.OCRnB, TOP);
+      } 
+      else if (this.timer.mode === TimerMode.PhaseCorrectPWMTop) {
         ctx.fillText(`MAX = ${this.timer.MAX}`, 160, 30);
         ctx.fillText("BOTTOM = 0", 140, 326);
-        drawOCRnx(`OCR${this.timer.number}A`, this.timer.OCRnA);
-        drawOCRnx(`OCR${this.timer.number}B`, this.timer.OCRnB);
+        drawOCRnx(`OCR${this.timer.number}A`, this.timer.OCRnA, TOP);
+        drawOCRnx(`OCR${this.timer.number}B`, this.timer.OCRnB, TOP);
       }
 
-      const rate = 20;
+      let rate = 20;
+      if (this.timer.mode === TimerMode.PhaseCorrectPWMMax || this.timer.mode === TimerMode.PhaseCorrectPWMTop) {
+        rate = this.timer.OVF ? rate * -1 : rate;
+      }
       if (this.timer.prescaler !== 0) {
         if (this.timer.TCT > TOP + 1) {
+          if (this.timer.mode !== TimerMode.PhaseCorrectPWMMax && this.timer.mode !== TimerMode.PhaseCorrectPWMTop) {
+            this.timer.TCT = 0;
+          } else {
+            this.timer.TCT = TOP;
+          }
+          this.timer.OVF ^= 1;
+        } else if (this.timer.TCT < 0) {
           this.timer.TCT = 0;
           this.timer.OVF ^= 1;
-        } else {
+        }
+        else {
           this.timer.TCT = this.timer.TCT + rate / this.timer.prescaler;
         }
       }
