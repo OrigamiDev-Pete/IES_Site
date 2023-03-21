@@ -19,9 +19,9 @@
                   <v-tooltip activator="parent" location="bottom">Timer Counter</v-tooltip>
                 </h3>
                 <v-divider vertical class="ml-4 mr-4"/>
-                <h3 class="mr-5">OVF: {{ timer.OVF }}
-                  <v-tooltip activator="parent" location="bottom">Overflow Flag</v-tooltip>
-                </h3>
+<!--                <h3 class="mr-5">OVF: {{ timer.OVF }}-->
+<!--                  <v-tooltip activator="parent" location="bottom">Overflow Flag</v-tooltip>-->
+<!--                </h3>-->
               </div>
             </v-sheet>
             <!-- Mode -->
